@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+
 
 export default function PaletteTool() {
   const [style, setStyle] = useState("");
@@ -10,6 +12,10 @@ export default function PaletteTool() {
   const [palette, setPalette] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
+
+  const searchParams = useSearchParams();
+  const isEmbed = searchParams.get("embed") === "1";
+
 
   function isLightHex(hex: string) {
     const h = hex.replace("#", "");
@@ -46,7 +52,7 @@ export default function PaletteTool() {
 
   return (
     <main
-      className={`min-h-screen p-10 transition ${
+      className={`min-h-screen ${isEmbed ? "p-4" : "p-10"}  transition ${
         uiTheme === "dark"
           ? "bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white"
           : "bg-gradient-to-br from-white via-orange-50 to-pink-50 text-black"
@@ -65,9 +71,12 @@ export default function PaletteTool() {
         </div>
       )}
 
-      <h1 className="text-3xl font-bold mb-6">
-        AI Color Palette Generator
-      </h1>
+      {!isEmbed && (
+  <h1 className="text-3xl font-bold mb-6">
+    AI Color Palette Generator
+  </h1>
+)}
+
 
       <div className="flex items-center justify-between mb-6">
         <p className={`${uiTheme === "dark" ? "text-white/70" : "text-gray-600"}`}>

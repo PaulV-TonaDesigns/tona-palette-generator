@@ -1,65 +1,226 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+
 
 export default function Home() {
+  const [style, setStyle] = useState("");
+  const [industry, setIndustry] = useState("");
+  const [uiTheme, setUiTheme] = useState<"light" | "dark">("light");
+const [paletteMode, setPaletteMode] = useState<"light" | "dark">("light");
+  const [palette, setPalette] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState<string | null>(null);
+
+
+  async function generatePalette() {
+    setLoading(true);
+    setPalette(null);
+
+    const res = await fetch("/api/palette", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+     body: JSON.stringify({ style, industry, mode: paletteMode }),
+
+    });
+
+    const data = await res.json();
+    setPalette(data);
+    setLoading(false);
+  }
+
+  function copyToClipboard(hex: string) {
+  navigator.clipboard.writeText(hex);
+  setCopied(hex);
+  setTimeout(() => setCopied(null), 1500);
+}
+
+function isLightHex(hex: string) {
+  const h = hex.replace("#", "");
+  if (h.length !== 6) return false;
+
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+
+  // perceived brightness (0–255)
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  return brightness > 180;
+}
+
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <main
+  className={`min-h-screen p-10 transition ${
+    uiTheme === "dark"
+      ? "bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white"
+      : "bg-gradient-to-br from-white via-orange-50 to-pink-50 text-black"
+  }`}
+>
+  {copied && (
+  <div
+    className={`fixed bottom-6 right-6 px-4 py-2 rounded-xl shadow-lg text-sm backdrop-blur-md border transition
+      ${
+        uiTheme === "dark"
+          ? "bg-white/10 text-white border-white/10"
+          : "bg-black/80 text-white border-black/20"
+      }`}
+  >
+    Copied {copied}
+  </div>
+)}
+
+
+
+      <h1 className="text-3xl font-bold mb-6">AI Color Palette Generator</h1>
+<div className="flex items-center justify-between mb-6">
+  <p className={`${uiTheme === "dark" ? "text-white/70" : "text-gray-600"}`}>
+    Generate on-brand color palettes instantly. Click any color to copy.
+  </p>
+
+  <button
+    onClick={() => {
+      const next = uiTheme === "light" ? "dark" : "light";
+      setUiTheme(next);
+      setPaletteMode(next); // keeps things intuitive
+    }}
+    className={`px-4 py-2 rounded-full text-sm font-medium transition
+      ${uiTheme === "dark"
+        ? "bg-white/10 text-white hover:bg-white/15"
+        : "bg-black/10 text-black hover:bg-black/15"
+      }`}
+  >
+    {uiTheme === "dark" ? "Dark UI ✓" : "Light UI ✓"}
+  </button>
+</div>
+
+      <div className="flex gap-4 mb-6">
+        <input
+          placeholder="Style (e.g. Tropical Punch)"
+          className={`p-3 rounded-xl w-72 outline-none border transition
+  ${uiTheme === "dark"
+    ? "bg-white/5 border-white/10 placeholder:text-white/40"
+    : "bg-white border-black/10 placeholder:text-gray-400"
+  }`}
+
+          value={style}
+          onChange={(e) => setStyle(e.target.value)}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+        <select
+  className={`p-3 rounded-xl w-72 outline-none border transition
+  ${uiTheme === "dark"
+    ? "bg-white/5 border-white/10 placeholder:text-white/40"
+    : "bg-white border-black/10 placeholder:text-gray-400"
+  }`}
+
+  value={industry}
+  onChange={(e) => setIndustry(e.target.value)}
+>
+  <option value="">Select Industry (Optional)</option>
+  <option value="Real Estate">Real Estate</option>
+  <option value="Medical / Healthcare">Medical / Healthcare</option>
+  <option value="Law Firm">Law Firm</option>
+  <option value="Restaurant">Restaurant</option>
+  <option value="E-commerce">E-commerce</option>
+  <option value="Marketing Agency">Marketing Agency</option>
+  <option value="Construction">Construction</option>
+  <option value="Tech Startup">Tech Startup</option>
+  <option value="Education">Education</option>
+  <option value="Other">Other</option>
+</select>
+
+        <select
+  className={`p-3 rounded-xl outline-none border transition
+    ${uiTheme === "dark"
+      ? "bg-white/5 border-white/10"
+      : "bg-white border-black/10"
+    }`}
+  value={paletteMode}
+  onChange={(e) => setPaletteMode(e.target.value as "light" | "dark")}
+>
+  <option value="light">Palette: Light</option>
+  <option value="dark">Palette: Dark</option>
+</select>
+
+        <button
+          onClick={generatePalette}
+          className="px-6 py-3 rounded-xl font-semibold text-white shadow-lg transition
+bg-gradient-to-r from-orange-500 to-pink-500 hover:opacity-90 active:scale-[0.99]"
+
+        >
+          {loading ? "Generating..." : "Generate"}
+        </button>
+      </div>
+
+      {palette && (
+  <div className="mt-10 animate-fadeIn">
+
+        <div>
+          <h2 className="text-2xl font-semibold mb-2">
+            {palette.palette_name}
+          </h2>
+         <button
+  onClick={() =>
+    copyToClipboard(
+      palette.colors.map((c: any) => c.hex).join(", ")
+    )
+  }
+ className={`mb-6 ml-3 px-4 py-2 rounded-xl text-sm font-medium transition shadow-sm
+  ${uiTheme === "dark"
+    ? "bg-white/10 hover:bg-white/15 text-white border border-white/10"
+    : "bg-black/10 hover:bg-black/15 text-black border border-black/10"
+  }`}
+
+>
+  Copy All Colors
+</button>
+      <button
+  onClick={() => {
+    const vars = palette.colors
+      .map((c: any) => `--${c.name.toLowerCase().replace(/\s+/g, "-")}: ${c.hex};`)
+      .join("\n");
+    copyToClipboard(vars);
+  }}
+ className={`mb-6 ml-3 px-4 py-2 rounded-xl text-sm font-medium transition shadow-sm
+  ${uiTheme === "dark"
+    ? "bg-white/10 hover:bg-white/15 text-white border border-white/10"
+    : "bg-black/10 hover:bg-black/15 text-black border border-black/10"
+  }`}
+
+>
+  Copy CSS Variables
+</button>
+
+        <p className={`mb-6 ${uiTheme === "dark" ? "text-white/70" : "text-gray-600"}`}>
+  {palette.description}
+</p>
+
+
+
+          <div className="flex gap-4">
+            {palette.colors?.map((color: any, index: number) => (
+              <div
+                key={index}
+                onClick={() => copyToClipboard(color.hex)}
+                className={`cursor-pointer w-32 h-40 rounded-2xl shadow-lg
+backdrop-blur-md border border-white/10
+flex flex-col justify-end p-3
+transition transform hover:scale-[1.03]
+${isLightHex(color.hex) ? "text-black" : "text-white"}`}
+
+
+                style={{ backgroundColor: color.hex }}
+              >
+                <span className="font-bold">{color.hex}</span>
+                <span className="text-sm">{color.name}</span>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
         </div>
-      </main>
-    </div>
+      )}
+
+
+    </main>
   );
 }

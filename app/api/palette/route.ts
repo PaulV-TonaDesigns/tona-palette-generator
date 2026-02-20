@@ -33,6 +33,11 @@ Requirements:
 
 `;
 
+if (!style || typeof style !== "string" || style.trim().length < 2) {
+  return NextResponse.json({ error: "Please enter a style prompt." }, { status: 400 });
+}
+
+
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [

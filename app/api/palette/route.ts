@@ -5,6 +5,8 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+type PaletteColor = { name: string; hex: string };
+
 type LockedColor = {
   index: number;
   hex: string;
@@ -127,13 +129,13 @@ ${lockedNote}
     const colorsRaw = Array.isArray(parsed?.colors) ? parsed.colors : [];
 
     // Normalize + force exactly 5 colors
-    let colors = colorsRaw
-      .slice(0, 5)
-      .map((c: any, i: number) => {
-        const name = safeTitle(c?.name) || `Color ${i + 1}`;
-        const hex = normalizeHex(String(c?.hex || ""));
-        return { name, hex };
-      });
+    let colors: PaletteColor[] = colorsRaw
+  .slice(0, 5)
+  .map((c: any, i: number) => {
+    const name = safeTitle(c?.name) || `Color ${i + 1}`;
+    const hex = normalizeHex(String(c?.hex || ""));
+    return { name, hex };
+  });
 
     // If fewer than 5 came back, pad with safe neutral fallbacks
     while (colors.length < 5) {

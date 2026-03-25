@@ -13,7 +13,6 @@ export const SectionTypeSchema = z.enum([
   "popup",
 ]);
 export type SectionType = z.infer<typeof SectionTypeSchema>;
-export type SectionType = z.infer<typeof SectionTypeSchema>;
 
 export const ModeSchema = z.enum(["wireframe", "annotated"]);
 export type Mode = z.infer<typeof ModeSchema>;

@@ -243,11 +243,11 @@ function renderElement(el: Element) {
   }
 
   default:
-    return (
-      <div className="rounded-2xl border border-gray-200 bg-white p-4 text-xs text-gray-600">
-        Unknown: {el.type}
-      </div>
-    );
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-white p-4 text-xs text-gray-500">
+      Unknown element
+    </div>
+  );
 }  
 }
 
